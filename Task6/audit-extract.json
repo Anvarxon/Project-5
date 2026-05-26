@@ -1,0 +1,98 @@
+[
+  {
+    "kind": "Event",
+    "apiVersion": "audit.k8s.io/v1",
+    "level": "RequestResponse",
+    "verb": "get",
+    "user": {
+      "username": "system:serviceaccount:secure-ops:monitoring"
+    },
+    "objectRef": {
+      "resource": "secrets",
+      "namespace": "kube-system",
+      "name": "<system-secret>"
+    },
+    "responseStatus": {
+      "code": 403,
+      "reason": "Forbidden"
+    },
+    "analysisNote": "Ожидаемый результат до ошибочной выдачи прав: попытка подозрительна, но RBAC блокирует чтение."
+  },
+  {
+    "kind": "Event",
+    "apiVersion": "audit.k8s.io/v1",
+    "level": "RequestResponse",
+    "verb": "create",
+    "user": {
+      "username": "minikube-user"
+    },
+    "objectRef": {
+      "resource": "pods",
+      "namespace": "secure-ops",
+      "name": "privileged-pod"
+    },
+    "requestObject": {
+      "spec": {
+        "containers": [
+          {
+            "name": "pwn",
+            "securityContext": {
+              "privileged": true
+            }
+          }
+        ]
+      }
+    },
+    "responseStatus": {
+      "code": 201
+    }
+  },
+  {
+    "kind": "Event",
+    "apiVersion": "audit.k8s.io/v1",
+    "level": "Metadata",
+    "verb": "create",
+    "user": {
+      "username": "minikube-user"
+    },
+    "objectRef": {
+      "resource": "pods",
+      "subresource": "exec",
+      "namespace": "kube-system",
+      "name": "<coredns-pod>"
+    },
+    "responseStatus": {
+      "code": 101
+    }
+  },
+  {
+    "kind": "Event",
+    "apiVersion": "audit.k8s.io/v1",
+    "level": "RequestResponse",
+    "verb": "create",
+    "user": {
+      "username": "minikube-user"
+    },
+    "objectRef": {
+      "resource": "rolebindings",
+      "namespace": "secure-ops",
+      "name": "escalate-binding"
+    },
+    "requestObject": {
+      "roleRef": {
+        "kind": "ClusterRole",
+        "name": "cluster-admin"
+      },
+      "subjects": [
+        {
+          "kind": "ServiceAccount",
+          "namespace": "secure-ops",
+          "name": "monitoring"
+        }
+      ]
+    },
+    "responseStatus": {
+      "code": 201
+    }
+  }
+]
